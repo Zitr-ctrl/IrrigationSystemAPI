@@ -16,7 +16,7 @@ const dbConfig = {
   host: 'localhost',
   user: 'root',
   password: '12345',
-  database: 'irrigationsystem',
+  database: 'irrigationsystem1',
   port: 3308
 };
 
@@ -32,28 +32,47 @@ async function testDatabaseConnection() {
   }
 }
 
-// Ruta para insertar lectura de sensor
-app.post('/api/insertar_lectura', async (req, res) => {
-  const { sensor_id, valor, unidad } = req.body;
+// Nueva ruta: insertar registro completo con lecturas
+app.post('/api/insertar_registro_completo', async (req, res) => {
+  const { maceta_id, bomba, lecturas } = req.body;
 
-  if (!sensor_id || !valor || !unidad) {
-    return res.status(400).json({ error: 'Faltan datos en la solicitud' });
+  if (!maceta_id || !bomba || !Array.isArray(lecturas) || lecturas.length === 0) {
+    return res.status(400).json({ error: 'Datos incompletos' });
   }
 
+  let connection;
   try {
-    const connection = await mysql.createConnection(dbConfig);
+    connection = await mysql.createConnection(dbConfig);
+    await connection.beginTransaction();
 
-    const query = 'INSERT INTO lectura_sensor (sensor_id, valor, unidad) VALUES (?, ?, ?)';
-    const [result] = await connection.execute(query, [sensor_id, valor, unidad]);
+    // Insertar registro de riego
+    const [registroResult] = await connection.execute(
+      'INSERT INTO registro_riego (maceta_id, bomba_estado) VALUES (?, ?)',
+      [maceta_id, bomba]
+    );
 
+    const registroId = registroResult.insertId;
+
+    // Insertar cada lectura
+    for (const lectura of lecturas) {
+      const { sensor_id, valor, unidad } = lectura;
+      await connection.execute(
+        'INSERT INTO lectura_sensor (sensor_id, registro_id, valor, unidad) VALUES (?, ?, ?, ?)',
+        [sensor_id, registroId, valor, unidad]
+      );
+    }
+
+    await connection.commit();
     await connection.end();
 
-    res.json({ message: 'Lectura insertada correctamente', insertId: result.insertId });
+    res.json({ message: 'Registro completo insertado correctamente', registroId });
   } catch (error) {
-    console.error('Error al insertar lectura:', error);
+    if (connection) await connection.rollback();
+    console.error('Error al insertar registro:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
+
 
 // Iniciar servidor y verificar conexión
 app.listen(port, async () => {
