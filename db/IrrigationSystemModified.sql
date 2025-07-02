@@ -69,3 +69,13 @@ VALUES
 
 SELECT * FROM registro_riego ORDER BY id DESC LIMIT 5;
 
+
+SELECT * FROM lectura_sensor ORDER BY id DESC LIMIT 10;
+
+select * from sensor;
+
+UPDATE sensor SET maceta_id = 1 WHERE id = 1;
+UPDATE sensor SET maceta_id = 2 WHERE id = 2;
+UPDATE sensor SET maceta_id = 3 WHERE id = 3;
+
+

@@ -9,6 +9,13 @@ select * from user;
 
 select * from lectura_sensor;
 
+SELECT registro_riego.*, zona_riego.nombre
+FROM registro_riego
+LEFT JOIN zona_riego ON registro_riego.zona_id = zona_riego.id
+WHERE zona_riego.id IS NULL;
+
+
+
 CREATE TABLE user (
   id INT PRIMARY KEY AUTO_INCREMENT,
   nombre VARCHAR(50) NOT NULL,
@@ -58,6 +65,10 @@ CREATE TABLE registro_riego (
 
 USE irrigationsystem;
 SELECT * FROM sensor;
+
+SELECT * FROM registro_riego;
+
+SELECT * FROM lectura_sensor;
 
 INSERT INTO zona_riego (nombre, descripcion, ubicacion)
 VALUES ('Zona 1', 'Sector norte', 'Campo A');

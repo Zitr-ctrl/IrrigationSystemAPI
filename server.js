@@ -73,6 +73,27 @@ app.post('/api/insertar_registro_completo', async (req, res) => {
   }
 });
 
+// Ruta que devuelve solo un array de números
+app.get('/api/humedad_minima', async (req, res) => {
+  let connection;
+  try {
+    // Crear conexión local
+    connection = await mysql.createConnection(dbConfig);
+
+    const [rows] = await connection.execute(
+      'SELECT humedad_minima FROM maceta ORDER BY id ASC'
+    );
+
+    const valores = rows.map(r => parseFloat(r.humedad_minima));
+    res.json(valores);
+
+    await connection.end();
+  } catch (error) {
+    console.error('Error al obtener humedad mínima:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
 
 // Iniciar servidor y verificar conexión
 app.listen(port, async () => {
