@@ -1,6 +1,5 @@
--- Base de datos (si no existe)
-CREATE DATABASE IF NOT EXISTS irrigationsystem1;
-USE irrigationsystem1;
+create database irrigationsystem2;
+use irrigationsystem2;
 
 -- Tabla de usuarios
 CREATE TABLE user (
@@ -13,7 +12,7 @@ CREATE TABLE user (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tabla de zonas de riego
+-- Tabla de zonas de riego (macetas)
 CREATE TABLE maceta (
   id INT PRIMARY KEY AUTO_INCREMENT,
   nombre_maceta VARCHAR(100),
@@ -32,18 +31,14 @@ CREATE TABLE sensor (
   FOREIGN KEY (maceta_id) REFERENCES maceta(id) ON DELETE SET NULL
 );
 
--- Tabla de registros de riego (cabecera del evento)
+-- Tabla de registros de riego (solo estado de bomba)
 CREATE TABLE registro_riego (
   id INT PRIMARY KEY AUTO_INCREMENT,
-  maceta_id INT NOT NULL,
   bomba_estado ENUM('ON','OFF') DEFAULT 'OFF',
-  usuario_id INT,
-  fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (maceta_id) REFERENCES maceta(id),
-  FOREIGN KEY (usuario_id) REFERENCES user(id)
+  fecha DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tabla de lecturas de sensores (detalle por sensor)
+-- Tabla de lecturas de sensores (detalle por sensor y por evento de riego)
 CREATE TABLE lectura_sensor (
   id INT PRIMARY KEY AUTO_INCREMENT,
   sensor_id INT NOT NULL,
@@ -55,10 +50,8 @@ CREATE TABLE lectura_sensor (
   FOREIGN KEY (registro_id) REFERENCES registro_riego(id) ON DELETE CASCADE
 );
 
-select * from maceta;
-
 INSERT INTO maceta (nombre_maceta, nombre_planta, tamaño_maceta, estado, humedad_minima)
-VALUES ('Maceta 3', 'Lechuga', 'Mediana', 'activo', 30.0);
+VALUES ('Maceta 3', 'pimiento', 'mediana', 'activo', 41.0);
 
 INSERT INTO sensor (tipo, descripcion, maceta_id)
 VALUES
@@ -66,15 +59,10 @@ VALUES
 ('humedad', 'Sensor Humedad 2', 2),
 ('humedad', 'Sensor Humedad 3', 3);
 
-
+select * from maceta; 
 SELECT * FROM registro_riego ORDER BY id DESC LIMIT 5;
-
-
 SELECT * FROM lectura_sensor ORDER BY id DESC LIMIT 10;
-
 select * from sensor;
-
-use irrigationsystem1;
 
 UPDATE sensor SET maceta_id = 1 WHERE id = 1;
 UPDATE sensor SET maceta_id = 2 WHERE id = 2;

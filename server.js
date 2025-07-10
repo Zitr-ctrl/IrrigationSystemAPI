@@ -16,7 +16,7 @@ const dbConfig = {
   host: 'localhost',
   user: 'root',
   password: '12345',
-  database: 'irrigationsystem1',
+  database: 'irrigationsystem2',
   port: 3308
 };
 
@@ -34,9 +34,9 @@ async function testDatabaseConnection() {
 
 // Nueva ruta: insertar registro completo con lecturas
 app.post('/api/insertar_registro_completo', async (req, res) => {
-  const { maceta_id, bomba, lecturas } = req.body;
+  const { bomba, lecturas } = req.body;
 
-  if (!maceta_id || !bomba || !Array.isArray(lecturas) || lecturas.length === 0) {
+  if (!bomba || !Array.isArray(lecturas) || lecturas.length === 0) {
     return res.status(400).json({ error: 'Datos incompletos' });
   }
 
@@ -45,15 +45,15 @@ app.post('/api/insertar_registro_completo', async (req, res) => {
     connection = await mysql.createConnection(dbConfig);
     await connection.beginTransaction();
 
-    // Insertar registro de riego
+    // ✅ Inserta solo el estado de la bomba
     const [registroResult] = await connection.execute(
-      'INSERT INTO registro_riego (maceta_id, bomba_estado) VALUES (?, ?)',
-      [maceta_id, bomba]
+      'INSERT INTO registro_riego (bomba_estado) VALUES (?)',
+      [bomba]
     );
 
     const registroId = registroResult.insertId;
 
-    // Insertar cada lectura
+    // ✅ Inserta lecturas relacionadas al registro creado
     for (const lectura of lecturas) {
       const { sensor_id, valor, unidad } = lectura;
       await connection.execute(
@@ -72,6 +72,7 @@ app.post('/api/insertar_registro_completo', async (req, res) => {
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
+
 
 // Ruta que devuelve solo un array de números
 app.get('/api/humedad_minima', async (req, res) => {
